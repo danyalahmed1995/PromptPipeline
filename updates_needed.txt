@@ -1,0 +1,59 @@
+You are modifying an existing React + TypeScript codebase.
+
+GOAL:
+Replace all hardcoded occurrences of "PromptPipeline" in generated filenames with the actual project/folder name selected by the user.
+
+CONTEXT:
+- The user selects a folder using <input type="file" webkitdirectory>.
+- We want to extract the root folder name from the selected files.
+- This project name should be used in:
+  - Bundle filenames
+  - ZIP filename
+  - Any generated output names
+
+REQUIREMENTS:
+1. Extract project name from selected files:
+   - Use the first file's path (files[0].webkitRelativePath)
+   - The project name is the first segment before "/"
+
+2. Store it in a variable:
+   const projectName = getProjectName(files);
+
+3. Create helper function:
+   function getProjectName(files: File[]): string
+
+4. Sanitize the project name for safe filenames:
+   - Remove special characters
+   - Replace spaces with underscores
+
+5. Replace ALL occurrences of:
+   "PromptPipeline"
+
+   With:
+   projectName
+
+   Specifically in:
+   - Bundle filenames
+   - ZIP filename
+
+6. Do NOT break existing logic
+7. Do NOT change unrelated code
+8. Keep everything TypeScript-safe
+
+EXPECTED OUTPUT:
+- Updated App.tsx
+- Only modify relevant parts
+- Include helper function
+- Use clean, readable code
+
+EXAMPLE:
+If folder = "My Unity Game"
+
+Old:
+PromptPipeline_Bundle_001_of_002.md
+
+New:
+My_Unity_Game_Bundle_001_of_002.md
+
+ZIP:
+My_Unity_Game_Bug_Report_WorkPackage.zip

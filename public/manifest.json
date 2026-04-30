@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Prompt Pipeline",
+  "version": "0.1.0",
+  "description": "Markdown bundle export for code feeding",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["clipboardWrite"]
+}

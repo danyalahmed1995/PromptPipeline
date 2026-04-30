@@ -1,0 +1,36 @@
+Build a browser extension MVP using TypeScript + Vite for Chrome Manifest V3.
+
+Goal:
+A generic ChatGPT code feeder extension.
+
+Features:
+1. Popup UI with:
+   - Select folder button
+   - File list preview
+   - Template dropdown: Bug Report, Explain Code, Refactor Suggestions
+   - Copy Next Chunk button
+
+2. Read selected folder files using webkitdirectory input.
+
+3. Include only:
+   .cs, .js, .ts, .tsx, .jsx, .json, .md, .txt, .xml, .yml, .yaml, .html, .css
+
+4. Exclude folders:
+   node_modules, .git, Library, Temp, obj, bin, Build, Builds, Logs, dist, .next, .vscode
+
+5. Redact possible secrets:
+   apiKey, secret, token, password, private_key, client_secret
+
+6. Chunk files into around 12000 characters.
+
+7. Each chunk should have a header:
+   FILE: path
+   CHUNK: x/y
+
+8. Copy the next chunk to clipboard when button is clicked.
+
+Do NOT auto-send messages to ChatGPT yet.
+Do NOT inject into ChatGPT DOM yet.
+Keep it safe and manual.
+
+Generate complete project files and explain how to run it locally.

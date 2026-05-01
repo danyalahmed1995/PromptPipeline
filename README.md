@@ -6,7 +6,7 @@ With](https://img.shields.io/badge/built%20with-React%20%2B%20TypeScript-61DAFB)
 ![Status](https://img.shields.io/badge/status-Active-success)
 ![Performance](https://img.shields.io/badge/tested-57GB%20Project-orange)
 
-> Turn chaotic codebases into **AI-ready execution plans** for ChatGPT &
+> Turn codebases into **AI-ready execution plans** for ChatGPT &
 > Codex.
 
 ------------------------------------------------------------------------

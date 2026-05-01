@@ -1,43 +1,91 @@
-# Prompt Pipeline Extension
+# ⚡ Prompt Pipeline
 
-A generic ChatGPT code feeder extension to help you upload folder contents in chunks.
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![Built
+With](https://img.shields.io/badge/built%20with-React%20%2B%20TypeScript-61DAFB)
+![Platform](https://img.shields.io/badge/platform-Chrome%20Extension-green)
+![Status](https://img.shields.io/badge/status-Active-success)
+![Performance](https://img.shields.io/badge/tested-57GB%20Project-orange)
 
-## Features
-- Select a folder to process.
-- Filters files by extension and excludes common build/system folders.
-- Redacts common secret patterns (API keys, tokens, etc.).
-- Chunks large files into ~12,000 character pieces.
-- Copy chunks sequentially with a single click.
-- Supports templates: Bug Report, Explain Code, Refactor Suggestions.
+> Turn chaotic codebases into **AI-ready execution plans** for ChatGPT &
+> Codex.
 
-## Tech Stack
-- React + TypeScript
-- Vite
-- Chrome Manifest V3
+------------------------------------------------------------------------
 
-## Local Setup
+## 🧠 Overview
 
-### 1. Install Dependencies
-```bash
+Prompt Pipeline transforms large projects into structured work packages
+so AI tools can focus on execution instead of exploration.
+
+------------------------------------------------------------------------
+
+## 🎬 Demo
+
+### Generate Work Package
+
+![Demo Step 1](./assets/demo-generate.gif)
+
+### ChatGPT Output
+
+![Demo Step 2](./assets/demo-gpt.png)
+
+### Codex Execution
+
+![Demo Step 3](./assets/demo-codex.png)
+
+------------------------------------------------------------------------
+
+## 🚀 Features
+
+-   Work package generation (.md + .zip)
+-   Smart filtering (junk removal, secret redaction)
+-   Instruction templates (Bug Report, Fixes, Refactor, Tests)
+-   Intelligent chunking
+-   Large project optimization (batching, progress tracking)
+
+------------------------------------------------------------------------
+
+## ⚡ Before vs After
+
+### Without Prompt Pipeline
+
+Code → AI → Confusion → Planning → Execution
+
+### With Prompt Pipeline
+
+Code → Structured Input → AI → Execution
+
+------------------------------------------------------------------------
+
+## 🧪 Performance
+
+Tested on: - Unity project (\~57GB) - \~120,000 files
+
+Results: - No crash - Minimal lag - Stable output
+
+------------------------------------------------------------------------
+
+## 🚀 Quick Start
+
+``` bash
 npm install
-```
-
-### 2. Build the Extension
-```bash
 npm run build
 ```
-This will create a `dist` folder.
 
-### 3. Load in Chrome
-1. Open Chrome and navigate to `chrome://extensions/`.
-2. Enable **Developer mode** (toggle in the top right).
-3. Click **Load unpacked**.
-4. Select the `dist` folder in this project directory.
+Load into Chrome → Select Folder → Download Work Package → Upload to
+ChatGPT
 
-## Usage
-1. Click the extension icon in your browser.
-2. Click **Select Folder** and choose the project folder you want to feed to ChatGPT.
-3. Select a **Template** from the dropdown.
-4. Click **Copy Next Chunk** to copy the first piece to your clipboard.
-5. Paste into ChatGPT.
-6. Repeat until all chunks are copied.
+------------------------------------------------------------------------
+
+## ❓ Why not just paste code?
+
+-   Context limits
+-   Token waste
+-   Repetition
+
+Prompt Pipeline: - Filters - Structures - Instructs
+
+------------------------------------------------------------------------
+
+## 📜 License
+
+MIT

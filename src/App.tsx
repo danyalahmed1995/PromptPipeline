@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import JSZip from 'jszip';
-import { processFiles, generateBundles, ProcessedFile, SkipStats } from './fileProcessor';
+import {
+  processFiles,
+  forEachGeneratedBundle,
+  type ProcessedFile,
+  type ProcessingProgress,
+  type SkipStats
+} from './fileProcessor';
 import {
   TEMPLATE_MAPPING,
   TemplateType,
@@ -8,6 +14,10 @@ import {
   type PromptPipelineConfig
 } from './constants';
 import './App.css';
+
+const DEFAULT_MAX_BUNDLE_SIZE_MB = 1.5;
+const DEFAULT_MAX_FILE_SIZE_KB = 200;
+const FILE_PREVIEW_LIMIT = 200;
 
 function App() {
   const [files, setFiles] = useState<ProcessedFile[]>([]);
@@ -24,7 +34,13 @@ function App() {
   const [includeMd, setIncludeMd] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [splitFiles, setSplitFiles] = useState(true);
-  const [maxSizeMB, setMaxSizeMB] = useState(1.5);
+  const [maxSizeMB, setMaxSizeMB] = useState(DEFAULT_MAX_BUNDLE_SIZE_MB);
+  const [maxFileSizeKB, setMaxFileSizeKB] = useState(DEFAULT_MAX_FILE_SIZE_KB);
+  const [progress, setProgress] = useState<ProcessingProgress>({
+    totalFilesScanned: 0,
+    filesProcessed: 0,
+    filesSkipped: 0
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,13 +64,26 @@ function App() {
     if (!selectedFiles) return;
 
     setIsProcessing(true);
+    setFiles([]);
+    setSkipStats({
+      total: 0,
+      byReason: {},
+      byExtension: {}
+    });
+    setProgress({
+      totalFilesScanned: 0,
+      filesProcessed: 0,
+      filesSkipped: 0
+    });
     setProjectName(getProjectName(selectedFiles));
 
     try {
       const { processed, skipStats: stats } = await processFiles(selectedFiles, {
         includeJson,
         includeMd,
-        config: config ?? undefined
+        config: config ?? undefined,
+        maxIndividualFileSizeBytes: maxFileSizeKB * 1024,
+        onProgress: setProgress
       });
 
       setFiles(processed);
@@ -74,95 +103,86 @@ Analyze the uploaded work package using ONLY the included instruction file and b
 `;
   };
 
-const handleDownloadWorkPackage = async () => {
-  if (files.length === 0) {
-    alert("No valid files found after filtering.");
-    return;
-  }
-
-  const zip = new JSZip();
-
-  // 1. Load Instruction File (fail loudly if missing)
-  const instructionFileName = TEMPLATE_MAPPING[selectedTemplate];
-
-  let instructionText = '';
-
-  try {
-    const response = await fetch(`./instructions/${instructionFileName}`);
-
-    if (!response.ok) {
-      console.error(`Failed to fetch: ./instructions/${instructionFileName}`);
-      alert(`Instruction file missing or failed to load:\n${instructionFileName}`);
-      return; //  STOP everything
+  const handleDownloadWorkPackage = async () => {
+    if (files.length === 0) {
+      alert('No valid files found after filtering.');
+      return;
     }
 
-    instructionText = await response.text();
-  } catch (error) {
-    console.error('Error loading instruction file:', error);
-    alert(`Error loading instruction file:\n${instructionFileName}`);
-    return; // STOP everything
-  }
+    const zip = new JSZip();
 
-  zip.folder('instructions')?.file(instructionFileName, instructionText);
+    const instructionFileName = TEMPLATE_MAPPING[selectedTemplate];
+    let instructionText = '';
 
-  // 2. Generate Bundles
-  const bundles = generateBundles(
-    files,
-    splitFiles,
-    maxSizeMB,
-    skipStats,
-    config ?? undefined
-  );
+    try {
+      const response = await fetch(`./instructions/${instructionFileName}`);
 
-  const bundleFolder = zip.folder('bundles');
+      if (!response.ok) {
+        console.error(`Failed to fetch: ./instructions/${instructionFileName}`);
+        alert(`Instruction file missing or failed to load:\n${instructionFileName}`);
+        return;
+      }
 
-  bundles.forEach((content, index) => {
-    const fileName =
-      bundles.length > 1
-        ? `${projectName}_Bundle_${String(index + 1).padStart(3, '0')}_of_${String(bundles.length).padStart(3, '0')}.md`
-        : `${projectName}_Bundle.md`;
+      instructionText = await response.text();
+    } catch (error) {
+      console.error('Error loading instruction file:', error);
+      alert(`Error loading instruction file:\n${instructionFileName}`);
+      return;
+    }
 
-    bundleFolder?.file(fileName, content);
-  });
+    zip.folder('instructions')?.file(instructionFileName, instructionText);
 
-  // 3. README
-  zip.file('README.txt', generateReadme());
-
-  // 4. Generate & Download ZIP
-  try {
-    const blob = await zip.generateAsync({ type: 'blob' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${projectName}_${selectedTemplate.replace(/[^a-z0-9]+/gi, '_')}_WorkPackage.zip`;
-
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error('Error generating ZIP:', error);
-    alert('Failed to generate ZIP file.');
-  }
-};
-
-  const handleDownloadBundleOnly = () => {
-    if (files.length === 0) return;
-
-    const bundles = generateBundles(
+    const bundleFolder = zip.folder('bundles');
+    forEachGeneratedBundle(
       files,
       splitFiles,
       maxSizeMB,
       skipStats,
-      config ?? undefined
+      config ?? undefined,
+      (content, index, totalBundles) => {
+        const fileName =
+          totalBundles > 1
+            ? `${projectName}_Bundle_${String(index + 1).padStart(3, '0')}_of_${String(totalBundles).padStart(3, '0')}.md`
+            : `${projectName}_Bundle.md`;
+
+        bundleFolder?.file(fileName, content);
+      }
     );
 
-    bundles.forEach((content, index) => {
+    zip.file('README.txt', generateReadme());
+
+    try {
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${projectName}_${selectedTemplate.replace(/[^a-z0-9]+/gi, '_')}_WorkPackage.zip`;
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating ZIP:', error);
+      alert('Failed to generate ZIP file.');
+    }
+  };
+
+  const handleDownloadBundleOnly = () => {
+    if (files.length === 0) return;
+
+    forEachGeneratedBundle(
+      files,
+      splitFiles,
+      maxSizeMB,
+      skipStats,
+      config ?? undefined,
+      (content, index, totalBundles) => {
       const fileName =
-        bundles.length > 1
-          ? `${projectName}_Bundle_${String(index + 1).padStart(3, '0')}_of_${String(bundles.length).padStart(3, '0')}.md`
+          totalBundles > 1
+            ? `${projectName}_Bundle_${String(index + 1).padStart(3, '0')}_of_${String(totalBundles).padStart(3, '0')}.md`
           : `${projectName}_Bundle.md`;
 
       const blob = new Blob([content], { type: 'text/markdown' });
@@ -177,11 +197,15 @@ const handleDownloadWorkPackage = async () => {
       document.body.removeChild(a);
 
       URL.revokeObjectURL(url);
-    });
+      }
+    );
   };
 
   const totalSize = files.reduce((acc, file) => acc + file.size, 0);
   const estimatedBundles = Math.ceil(totalSize / (maxSizeMB * 1024 * 1024)) || 1;
+  const remainingPreviewCount = Math.max(files.length - FILE_PREVIEW_LIMIT, 0);
+  const previewFiles =
+    files.length > FILE_PREVIEW_LIMIT ? files.slice(0, FILE_PREVIEW_LIMIT) : files;
 
   return (
     <div className="app-container">
@@ -270,7 +294,26 @@ const handleDownloadWorkPackage = async () => {
                 min="0.1"
                 onChange={(e) => {
                   const parsed = parseFloat(e.target.value);
-                  setMaxSizeMB(Number.isFinite(parsed) && parsed > 0 ? parsed : 1.5);
+                  setMaxSizeMB(
+                    Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_BUNDLE_SIZE_MB
+                  );
+                }}
+              />
+            </div>
+
+            <div className="option-row">
+              <label htmlFor="maxFileSize">Max individual file size (KB):</label>
+              <input
+                id="maxFileSize"
+                type="number"
+                value={maxFileSizeKB}
+                step="25"
+                min="1"
+                onChange={(e) => {
+                  const parsed = parseInt(e.target.value, 10);
+                  setMaxFileSizeKB(
+                    Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_FILE_SIZE_KB
+                  );
                 }}
               />
             </div>
@@ -278,14 +321,20 @@ const handleDownloadWorkPackage = async () => {
         )}
       </div>
 
-      {files.length > 0 && (
+      {(files.length > 0 || isProcessing) && (
         <div className="status">
           <div className="status-main">
             <p>
-              <strong>Files included:</strong> {files.length}
+              <strong>Total files scanned:</strong> {progress.totalFilesScanned}
             </p>
             <p>
-              <strong>Files skipped:</strong> {skipStats.total}
+              <strong>Files processed:</strong> {progress.filesProcessed}
+            </p>
+            <p>
+              <strong>Files skipped:</strong> {progress.filesSkipped}
+            </p>
+            <p>
+              <strong>Files included:</strong> {files.length}
             </p>
             <p>
               <strong>Estimated total size:</strong> {(totalSize / 1024 / 1024).toFixed(2)} MB
@@ -294,6 +343,12 @@ const handleDownloadWorkPackage = async () => {
               <strong>Bundles to be generated:</strong> {splitFiles ? estimatedBundles : 1}
             </p>
           </div>
+
+          {isProcessing && (
+            <div className="progress-note">
+              Scanning in batches to keep the extension responsive...
+            </div>
+          )}
 
           <div className="skip-reasons">
             <h4>Skipped by type:</h4>
@@ -325,10 +380,16 @@ const handleDownloadWorkPackage = async () => {
         <div className="file-preview">
           <h3>Files Included:</h3>
           <ul>
-            {files.map((file, idx) => (
+            {previewFiles.map((file, idx) => (
               <li key={idx}>{file.path}</li>
             ))}
           </ul>
+
+          {remainingPreviewCount > 0 && (
+            <p className="preview-note">
+              Showing first {FILE_PREVIEW_LIMIT} files. {remainingPreviewCount} more included in the bundle.
+            </p>
+          )}
         </div>
       )}
     </div>

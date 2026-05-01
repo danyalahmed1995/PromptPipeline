@@ -142,6 +142,16 @@ h1 {
   color: #444;
 }
 
+.progress-note {
+  margin-top: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(100, 108, 255, 0.08);
+  border: 1px solid rgba(100, 108, 255, 0.15);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #4c54d2;
+}
+
 .skip-reasons {
   margin-top: 0.8rem;
   padding-top: 0.5rem;
@@ -193,4 +203,10 @@ h1 {
   padding-left: 1.2rem;
   margin: 0;
   color: #666;
+}
+
+.preview-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.75rem;
+  color: #777;
 }

@@ -24,16 +24,16 @@ so AI tools can focus on execution instead of exploration.
 ![Step 1](./assets/step1.png)
 
 ### Wait For Process
-![Step 1](./assets/step2.png)
+![Step 2](./assets/step2.png)
 
 ### Check Info
-![Step 1](./assets/step3.png)
+![Step 3](./assets/step3.png)
 
 ### Generate Package
-![Step 2](./assets/step4.png)
+![Step 4](./assets/step4.png)
 
 ### ChatGPT Output
-![Step 3](./assets/step5.png)
+![Step 5](./assets/step5.png)
 
 ------------------------------------------------------------------------
 
@@ -74,8 +74,7 @@ npm install
 npm run build
 ```
 
-Load into Chrome → Select Folder → Download Work Package → Upload to
-ChatGPT
+Open chrome://extensions → Enable Developer Mode → Load Unpacked → select dist
 
 ------------------------------------------------------------------------
 

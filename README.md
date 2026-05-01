@@ -18,19 +18,15 @@ so AI tools can focus on execution instead of exploration.
 
 ------------------------------------------------------------------------
 
-## 🎬 Demo
+## ⚡ Steps
 
 ### Generate Work Package
 
-![Demo Step 1](./assets/demo-generate.gif)
+### Upload to ChatGPT
 
 ### ChatGPT Output
 
-![Demo Step 2](./assets/demo-gpt.png)
-
 ### Codex Execution
-
-![Demo Step 3](./assets/demo-codex.png)
 
 ------------------------------------------------------------------------
 
